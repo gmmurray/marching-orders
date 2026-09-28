@@ -2,6 +2,8 @@
 
 This file describes how to interact with the ShipBench task board for **marching-orders**.
 
+> **Reflects ShipBench CLI 0.5.0** (hand-synced 2026-09-28). This file is written once at `shipbench init` and is never refreshed by an upgrade, so it can drift behind the installed CLI. When this file and `shipbench <cmd> --help` disagree about commands or flags, the CLI wins — and update this file to match.
+
 ## Directory Structure
 
 ```
@@ -36,7 +38,7 @@ Task description in Markdown.
 ## Field Rules
 
 - **title** (required): Display name of the task.
-- **status** (required): Must be one of: todo, in-progress, done. Read `config.json` columns for current valid values.
+- **status** (required): Must be one of: todo, in-progress, review, done. Read `config.json` columns for current valid values.
 - **priority** (optional): Must be one of: low, medium, high. Defaults to "medium".
 - **assignee** (optional): Freeform string label (e.g. `claude`, `antigravity`, or `human`). Informational only — task eligibility is governed strictly by `status` and `depends_on`. Moving a task to `in-progress` signals that work has started.
 - **tags** (optional): Array of freeform strings.
@@ -150,29 +152,29 @@ Prefer the ShipBench CLI for task mutations when it is available. The CLI routes
 - **List available tasks**: `shipbench task list --available --json`
 - **List blocked tasks**: `shipbench task list --blocked --json`
 - **Filter by tags**: `shipbench task list --available --tag backend,auth --json`
-- **Read one task**: `shipbench task get <slug>`
-- **Search tasks**: `shipbench task search "<query>" --json`
+- **Read one task**: `shipbench task get <slug>` (add `--archived` to read one from the archive)
+- **Search tasks**: `shipbench task search "<query>" --json` (`--archived` searches only archived tasks, `--all` live and archived; `--whole-word`, `--limit`, and the `task list` filters also apply)
 - **Inspect dependencies**: `shipbench task graph --json`
 - **Include descriptions in a list**: `shipbench task list --json --include-body`
-- **Create a task**: `shipbench task create "Task title" --status=todo`
+- **Create a task**: `shipbench task create "Task title" --status=todo` (also `--priority`, `--assignee`, `--tags`, `--json`)
 - **Create a task with a description**: `shipbench task create "Task title" --body-file=description.md` (or `--body "One-line description."`)
 - **Rewrite a description**: `shipbench task edit <slug> --body-file=description.md` (replaces it whole; `--body ""` clears it)
-- **Revise task metadata**: `shipbench task edit <slug> --priority=high --assignee=agent --add-tag=urgent --remove-tag=stale` (also `--title`, `--tags`, `--clear-tags`, `--clear-assignee`, `--depends-on`, `--add-depends-on`, `--remove-depends-on`, `--clear-depends-on`). Every flag is applied in one validated write, so a rejected value leaves the task untouched. A title edit keeps the existing slug and filename. Status and board placement stay with `task move`.
+- **Revise task metadata**: `shipbench task edit <slug> --priority=high --assignee=agent --add-tag=urgent --remove-tag=stale` (also `--title`, `--tags`, `--clear-tags`, `--clear-assignee`, `--depends-on`, `--add-depends-on`, `--remove-depends-on`, `--clear-depends-on`, `--json`). Every flag is applied in one validated write, so a rejected value leaves the task untouched. A title edit keeps the existing slug and filename. Status and board placement stay with `task move`.
 - **Create a dependent task**: `shipbench task create "Task title" --depends-on=other-slug,another-slug`
 - **Add a time-anchored update**: `shipbench task comment <slug> "What changed and why."`
 - **Add a multi-line update**: `shipbench task comment <slug> --body-file update.md`
 - **Edit an update's text**: `shipbench task comment edit <slug> <index> "Corrected text."` (also takes `--body-file`)
 - **Delete an update**: `shipbench task comment delete <slug> <index>`
 - **Move a task**: `shipbench task move <slug> --to=in-progress`
-- **Complete a task**: `shipbench task move <slug> --to=done`
+- **Send finished work to review**: `shipbench task move <slug> --to=review` (only a human moves a task from review to done)
 - **Reorder a task when explicitly asked**: `shipbench task move <slug> --before=other-slug` (also `--top`, `--bottom`, `--after`, `--position <n>`)
-- **Archive a task**: `shipbench task archive <slug>`
+- **Archive a task**: `shipbench task archive <slug>` (a non-done task that live tasks depend on is refused unless `--force`)
 - **Bulk archive done tasks when explicitly requested**: `shipbench task archive --done` (add `--keep=N` to retain a specific number)
 - **List archived tasks**: `shipbench task list --archived`
 - **Unarchive a task**: `shipbench task unarchive <slug>`
 - **Delete a task**: `shipbench task delete <slug>`
-- **Open the board**: `shipbench board`
-- **Watch the board in the terminal**: `shipbench board terminal` (read-only; `--status`, `--tag`, `--assignee`, `--priority` narrow it)
+- **Open the board**: `shipbench board` (same as `shipbench board web`)
+- **Watch the board in the terminal**: `shipbench board terminal` or `board term` (read-only; `--status`, `--tag`, `--assignee`, `--priority` narrow it)
 
 ### Direct File Operations
 
